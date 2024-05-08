@@ -1,0 +1,12 @@
+---
+
+# Patched ArgoCD Application to enable Apps health assessment
+# cf. https://argo-cd.readthedocs.io/en/stable/operator-manual/health/#argocd-app
+
+resources:
+  - https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml
+
+# https://kubectl.docs.kubernetes.io/references/kustomize/kustomization/patches/
+patches:
+  - path: app-health-patch.yaml
+
