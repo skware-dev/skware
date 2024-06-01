@@ -1,5 +1,5 @@
 ---
-# ArgoCD Self-Managed
+# ArgoCD Self-Managed + Apps health patch
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

@@ -1,0 +1,214 @@
+---
+
+
+
+#---------- Skware Config ----------#
+
+skware:
+  debug: false
+  # debug: true
+  # nameOverride: skware
+  # Skware github repository
+  repo: &skware-repo https://github.com/skware-dev/skware.git
+
+  secret-store: vault # name of your [cluster] secret-store
+
+  # Prepend the Skware app release name to each App release name
+  helm-concat-release-name: false
+
+  # env: <env-name> # used as suffix for every app manifest/helm deployment (none by default (prod))
+  # profiles:
+  #   - min
+  #   - ha
+  #   - 1db
+
+  # Domain:
+  # domain: domain.tld
+  # Apps to install as a list of IDs
+  apps: []
+
+
+
+
+
+#---------- App defaults ----------#
+
+appDefaults:
+  # name: ArgoCD app name, default: <appID>
+  # namespace: # default: <name>
+
+  # Main source repository:
+  # repo: # REQUIRED
+  # REQUIRED: chart OR path
+  # chart: 
+  # path: 
+  # version: 
+  # include|exclude: 
+  # releaseName: # default: <Release.Name>-<name>
+
+  # set to "true" if installing a chart without setting any helm-specific
+  #   parameters like "chart", "releaseName", "defaults" or "values"
+  #   (any of these will set helm to "true")
+  helm: false
+
+  # the full ArgoCD sources spec for custom ArgoCD apps
+  # sourcesSpec:
+
+  # Skware dafaults for the app
+  # https://argo-cd.readthedocs.io/en/latest/user-guide/multiple_sources/#helm-value-files-from-external-git-repository
+  defaults: false
+  # User values for the chart
+  # values:
+  #   repo: https://git.example.com/org/values.git
+  #   # version: 
+  #   # list of user value files
+  #   files:
+  #     - <values-file-path-relative-to-repo-root>
+  # valuesObject: # values override as yaml object
+
+  # extra:
+  #   secrets: # [opt] External Secrets to create
+  #     # Example:
+  #     <secret-name>:
+  #       # namespace: <secret-namspace> # default: <app.namespace>
+  #       # store: <vault-store-name> # default: <skware.secret-store>
+  #       data: <secret-data-spec>
+  #         - secretKey: <secret-key>
+  #           # Vault secret name and key
+  #           remoteRef:
+  #             key: <vault-secret-name>
+  #             property: <vault-secret-key>
+  #       dataFrom: <secret-dataFrom-spec>
+  #         - extract:
+  #             key: <vault-secret-name>
+  #   objects:
+
+  # [opt] Additional/custom static manifests (ConfigMaps, Custom Resources, kustomizations...)
+  #   Meant to be a quick way to inject custom manifest (plain or using kustomize) to the ArgoCD application,
+  #     NOT to install a second Helm chart with a releaseName and values (which would optionally be hosted on
+  #     yet another repository). You can still use this to deploy a Helm chart using Kustomize though!
+  #       cf. https://kubectl.docs.kubernetes.io/references/kustomize/builtins/#_helmchartinflationgenerator_
+  #     Otherwise, you can use the full "sourcesSpec" for any complex/specific needs.
+  #   Don't forget to specify an ArgoCD sync-wave value in those manifest to control whether to apply them
+  #     before or after those from the main repo/chart (before: sync-wave < 0, after: sync-wave > 0)
+  # custom:
+  #   repo: 
+  #   # version: [opt]
+  #   # path: [opt]
+
+  # ArgoCD defaults
+  argocd:
+    # namespace: argocd # --> set in the App of apps manifest ("destination.namespace")
+    project: default
+    cluster: https://kubernetes.default.svc
+    # https://kostis-argo-cd.readthedocs.io/en/refresh-docs/syncing/waves/
+    # hook: 
+    wave: 99
+    # https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/
+    syncOptions:
+      # - Replace=true
+      - PruneLast=true
+
+
+
+
+
+#---------- Skware-One ----------#
+
+
+
+# https://github.com/kubernetes/ingress-nginx/blob/main/charts/ingress-nginx/values.yaml
+ingress-nginx-helm:
+  name: ingress-nginx
+  repo: https://kubernetes.github.io/ingress-nginx
+  chart: ingress-nginx
+  version: 4.10.1
+  argocd:
+    wave: 1
+ingress-nginx-cloud:
+  name: ingress-nginx
+  repo: https://github.com/kubernetes/ingress-nginx.git
+  path: deploy/static/provider/cloud
+  include: deploy.yaml
+  version: controller-v1.10.1
+  argocd:
+    wave: 1
+ingress-nginx-baremetal:
+  name: ingress-nginx
+  repo: https://github.com/kubernetes/ingress-nginx.git
+  path: deploy/static/provider/baremetal
+  include: deploy.yaml
+  version: controller-v1.10.1
+  argocd:
+    wave: 1
+
+
+
+# https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
+ext-secrets:
+  name: external-secrets
+  repo: https://charts.external-secrets.io
+  chart: external-secrets
+  version: 0.9.18
+  argocd:
+    wave: 5
+
+
+
+# ArgoCD
+argocd-config:
+  repo: *skware-repo
+  path: charts/skware-extra
+  version: main
+  # version: 0.1.0
+  argocd:
+    wave: 7
+
+
+
+
+
+#---------- Apps ----------#
+
+
+
+# https://github.com/openebs/openebs/blob/main/charts/values.yaml
+openebs:
+  repo: https://openebs.github.io/openebs
+  chart: openebs
+  version: 4.0.1
+  # version: 3.10.0
+  argocd:
+    wave: 10
+
+
+
+# https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
+cert-manager:
+  repo: https://charts.jetstack.io
+  chart: cert-manager
+  version: 1.14.5
+  # defaults: defaults/cert-manager.yaml
+  argocd:
+    wave: 20
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

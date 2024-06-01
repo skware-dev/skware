@@ -1,0 +1,18 @@
+{{- /* Custom Resource Template */}}
+
+{{- range $idx, $cr := (index $.Values "custom-resources") }}
+---
+# Custom Resource: {{ $cr.kind }} -> {{ $cr.name }}
+apiVersion: {{ required (printf "Custom Resource #%d: apiVersion required" $idx) $cr.apiVersion }}
+kind: {{ required (printf "Custom Resource #%d \"%s\": kind required" $idx $cr.apiVersion) $cr.kind }}
+metadata:
+  name: {{ required (printf "Custom Resource #%d \"%s\": kind required" $idx $cr.apiVersion) $cr.name }}
+  {{- if $cr.namespace }}
+  namespace: {{ $cr.namespace }}
+  {{- end }}
+  labels: {{- include "skware.labels" $ | nindent 4 }}
+  annotations:
+    {{- /* Ensuring Custom Resources are deployed after the main chart ("0" by default) */}}
+    argocd.argoproj.io/sync-wave: {{ $cr.wave | default "10" }}
+spec: {{ toYaml $cr.spec | nindent 2 }}
+{{- end }}

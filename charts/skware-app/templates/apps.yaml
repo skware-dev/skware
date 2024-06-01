@@ -1,0 +1,143 @@
+
+{{/* At least one application or CR required! */}}
+{{- if not (or .Values.skware.apps (index .Values "custom-resources")) }}
+  {{- fail "Nothing to install. At least one Application or Custom Resource required!" }}
+{{- end }}
+
+{{/* For each application */}}
+{{- range $appID := .Values.skware.apps }}
+
+{{/* Merging defaults with app-pecific values */}}
+{{- $app := merge (index $.Values $appID) $.Values.appDefaults }}
+
+{{/* Requirements */}}
+{{- if not $app.repo }}
+  {{- fail (printf "Application repository required for %s" $appID) }}
+{{- else if not (or $app.chart $app.path) }}
+  {{- fail (printf "Application \"%s\" requires either \"chart\" or \"path\" to be set for repo \"%s\"" $appID $app.repo) }}
+{{- end }}
+
+{{/* App namespace defaults to the app name */}}
+{{- $appName := $app.name | default $appID }}
+{{- $appNS := $app.namespace | default $appName }}
+{{- $appReleaseName := $app.releaseName | default $appName }}
+{{- $appFullReleaseName := (index $.Values.skware "helm-concat-release-name") | ternary (printf "%s-%s" $.Release.Name $appReleaseName) $appReleaseName }}
+
+{{- if $.Values.skware.debug }}
+---
+{{ $appID }}: ### DEBUG ###
+  {{- toYaml $app | nindent 2 }}
+{{- end }}
+
+---
+# ArgoCD App: {{ $appID }} -> ({{ $appName }})
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ required (printf "Application name required for %s" $appID) $appName }}
+  {{- /* Namespace NOT Required since created with an ArgoCD app with "destination.namespace" ! */}}
+  {{- /* namespace: {{ $app.argocd.namespace }} */}}
+  annotations:
+    {{- /*
+      {{- if $app.argocd.hook }}
+      argocd.argoproj.io/hook: {{ $app.argocd.hook | quote }}
+      {{- end }}
+    */}}
+    argocd.argoproj.io/sync-wave: {{ $app.argocd.wave | quote }}
+  labels:
+    {{- include "skware.labels" $ | nindent 4 }}
+    {{- if $app.values }}
+    skware.io/values-version: {{ $app.values.version | default "latest" | quote }}
+    {{- end }}
+# https://argo-cd.readthedocs.io/en/stable/user-guide/application-specification/
+spec:
+  project: {{ $app.argocd.project }}
+  sources:
+    {{- if $app.sourcesSpec }}
+    {{- toYaml $app.sourcesSpec | nindent 4 }}
+    {{- else }}
+    # Main application repo
+    - repoURL: {{ $app.repo }}
+      {{- if $app.version }}
+      targetRevision: {{ $app.version | quote }}
+      {{- end }}
+      {{ empty $app.chart | ternary "path" "chart" }}: {{ $app.chart | default $app.path }}
+      {{- if or $app.include $app.exclude }}
+      directory:
+        {{- if $app.include }}
+        include: {{ $app.include | quote }}
+        {{- end }}
+        {{- if $app.exclude }}
+        exclude: {{ $app.exclude | quote }}
+        {{- end }}
+      {{- end }}
+      {{- /* Using "chart", "releaseName", "defaults" or "values" always imply helm=true, regardless of app.helm value */}}
+      {{- if or $app.chart $app.releaseName $app.defaults $app.values $app.helm }}
+      helm:
+        releaseName: {{ $appFullReleaseName }}
+        {{- if or $app.defaults $app.values }}
+        valueFiles:
+          {{- if $app.defaults }}
+          - $defaults/{{ $app.defaults }}
+          {{- end }}
+          {{- if and $app.values $app.values.files }}
+          {{- range $file := $app.values.files }}
+          - $values/{{ $file }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if $app.valuesObject }}
+        valuesObject: {{ toYaml $app.valuesObject | nindent 10 }}
+        {{- end }}
+      {{- end }}
+    {{- if $app.extra }}
+    # Skware-extra repo
+    - repoURL: {{ $.Values.skware.repo }}
+      path: charts/skware-extra
+      targetRevision: {{ $.Chart.Version | quote }}
+      helm:
+        releaseName: {{ $appFullReleaseName }}-extra
+        valuesObject: {{- toYaml $app.extra | nindent 10 }}
+    {{- end }}
+    {{- if $app.custom }}
+    # Custom additional repo
+    - repoURL: {{ required (printf "\"%s.custom.repo\" required" $appID) $app.custom.repo }}
+      {{- if $app.custom.version }}
+      targetRevision: {{ $app.custom.version | quote }}
+      {{- end }}
+      {{- if $app.custom.path }}
+      path: {{ $app.custom.path }}
+      {{- end }}
+    {{- end }}
+    {{- if $app.defaults }}
+    # Skware default values
+    - repoURL: {{ $.Values.skware.repo }}
+      targetRevision: {{ $.Chart.Version | quote }}
+      ref: defaults
+    {{- end }}
+    {{- if $app.values }}
+    # User values
+    - repoURL: {{ $app.values.repo }}
+      {{- if $app.values.version }}
+      targetRevision: {{ $app.values.version | quote }}
+      {{- end }}
+      ref: values
+    {{- end }}
+  {{- end }}
+  destination:
+    server: {{ $app.argocd.cluster }}
+    namespace: {{ $appNS }}
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        app.kubernetes.io/managed-by: {{ include "skware.name" $ }}
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - FailOnSharedResource=true
+      {{- toYaml $app.argocd.syncOptions | nindent 6 }}
+    automated:
+      selfHeal: true
+      prune: true
+{{- end }}
+

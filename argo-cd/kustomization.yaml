@@ -9,4 +9,15 @@ resources:
 # https://kubectl.docs.kubernetes.io/references/kustomize/kustomization/patches/
 patches:
   - path: app-health-patch.yaml
-
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ARGOCD_SYNC_WAVE_DELAY
+          value: "5"
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: argocd-server
+      labelSelector: "app.kubernetes.io/name=argocd-server"

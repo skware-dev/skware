@@ -1,0 +1,17 @@
+{{- /* Kubernetes Object Template */}}
+
+{{- range $name, $obj := $.Values.objects }}
+---
+# Object: {{ $name }} -> {{ $obj.kind }}
+{{
+  merge $obj (dict
+    "metadata" (dict
+      "name" $name
+      "labels" (include "skware.labels" $ | fromYaml)
+      "annotations" (dict
+        "argocd.argoproj.io/sync-wave" "5"
+      )
+    )
+  ) | toYaml
+}}
+{{- end }}
