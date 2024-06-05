@@ -7,6 +7,7 @@
 skware:
   debug: false
   # debug: true
+
   # nameOverride: skware
   # Skware github repository
   repo: &skware-repo https://github.com/skware-dev/skware.git
@@ -16,6 +17,8 @@ skware:
   extra-version: &extra-version develop
   # extra-version: main
 
+  # Default ArgoCD project for skware-apps (can be overriden per-app)
+  project: default
   secret-store: vault # name of your [cluster] secret-store
 
   # Prepend the Skware app release name to each App release name
