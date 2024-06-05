@@ -10,10 +10,10 @@ skware:
   # nameOverride: skware
   # Skware github repository
   repo: &skware-repo https://github.com/skware-dev/skware.git
-  version: develop
+  version: &skware-version develop
 
   extra-chart: skware-extra
-  extra-version: develop
+  extra-version: &extra-version develop
   # extra-version: main
 
   secret-store: vault # name of your [cluster] secret-store
@@ -165,7 +165,7 @@ ext-secrets:
 argocd-config:
   repo: *skware-repo
   path: charts/skware-extra
-  version: main
+  version: *extra-version
   # version: 0.1.0
   argocd:
     wave: 7
