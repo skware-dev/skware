@@ -20,6 +20,7 @@ app.kubernetes.io/managed-by: {{ include "skware.name" . }}
 
 {{/* Selector labels */}}
 {{- define "skware.selectorLabels" -}}
+skware.io/type: skware-app
 skware.io/version: {{ .Chart.AppVersion | quote }}
 skware.io/app-group: {{ .Release.Name }}
 {{- end }}

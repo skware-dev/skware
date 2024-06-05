@@ -93,8 +93,8 @@ spec:
     {{- if $app.extra }}
     # Skware-extra repo
     - repoURL: {{ $.Values.skware.repo }}
-      path: charts/skware-extra
-      targetRevision: {{ $.Chart.Version | quote }}
+      path: charts/{{ index $.Values.skware "extra-chart" }}
+      targetRevision: {{ index $.Values.skware "extra-version" | quote }}
       helm:
         releaseName: {{ $appFullReleaseName }}-extra
         valuesObject: {{- toYaml $app.extra | nindent 10 }}
@@ -112,7 +112,7 @@ spec:
     {{- if $app.defaults }}
     # Skware default values
     - repoURL: {{ $.Values.skware.repo }}
-      targetRevision: {{ $.Chart.Version | quote }}
+      targetRevision: {{ $.Values.skware.version | quote }}
       ref: defaults
     {{- end }}
     {{- if $app.values }}
