@@ -37,6 +37,11 @@ metadata:
   name: {{ required (printf "Application name required for %s" $appID) $appName }}
   {{- /* Namespace NOT Required since created with an ArgoCD app with "destination.namespace" ! */}}
   {{- /* namespace: {{ $app.argocd.namespace }} */}}
+  labels:
+    {{- include "skware.labels" $ | nindent 4 }}
+    {{- if $app.values }}
+    skware.io/values-version: {{ $app.values.version | default "latest" | quote }}
+    {{- end }}
   annotations:
     {{- /*
       {{- if $app.argocd.hook }}
@@ -44,11 +49,8 @@ metadata:
       {{- end }}
     */}}
     argocd.argoproj.io/sync-wave: {{ $app.argocd.wave | quote }}
-  labels:
-    {{- include "skware.labels" $ | nindent 4 }}
-    {{- if $app.values }}
-    skware.io/values-version: {{ $app.values.version | default "latest" | quote }}
-    {{- end }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 # https://argo-cd.readthedocs.io/en/stable/user-guide/application-specification/
 spec:
   project: {{ $app.argocd.project }}
