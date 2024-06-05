@@ -75,7 +75,7 @@ appDefaults:
   #   secrets: # [opt] External Secrets to create
   #     # Example:
   #     <secret-name>:
-  #       # namespace: <secret-namspace> # default: <app.namespace>
+  #       # namespace: <secret-namespace> # default: <app.namespace>
   #       # store: <vault-store-name> # default: <skware.secret-store>
   #       data: <secret-data-spec>
   #         - secretKey: <secret-key>
@@ -163,6 +163,7 @@ ext-secrets:
 
 # ArgoCD
 argocd-config:
+  namespace: argocd
   repo: *skware-repo
   path: charts/skware-extra
   version: *extra-version
