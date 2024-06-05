@@ -71,8 +71,8 @@ spec:
         exclude: {{ $app.exclude | quote }}
         {{- end }}
       {{- end }}
-      {{- /* Using "chart", "releaseName", "defaults" or "values" always imply helm=true, regardless of app.helm value */}}
-      {{- if or $app.chart $app.releaseName $app.defaults $app.values $app.helm }}
+      {{- /* Using "chart", "releaseName", "defaults" or "values/valuesObject" always imply helm=true, regardless of app.helm value */}}
+      {{- if or $app.chart $app.releaseName $app.defaults $app.values $app.valuesObject $app.helm }}
       helm:
         releaseName: {{ $appFullReleaseName }}
         {{- if or $app.defaults $app.values }}
