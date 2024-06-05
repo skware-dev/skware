@@ -17,8 +17,6 @@ skware:
   extra-version: &extra-version develop
   # extra-version: main
 
-  # Default ArgoCD project for skware-apps (can be overriden per-app)
-  project: default
   secret-store: vault # name of your [cluster] secret-store
 
   # Prepend the Skware app release name to each App release name

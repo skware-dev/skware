@@ -53,7 +53,7 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 # https://argo-cd.readthedocs.io/en/stable/user-guide/application-specification/
 spec:
-  project: {{ $app.argocd.project | default $.Values.skware.project }}
+  project: {{ $app.argocd.project}}
   sources:
     {{- if $app.sourcesSpec }}
     {{- toYaml $app.sourcesSpec | nindent 4 }}
