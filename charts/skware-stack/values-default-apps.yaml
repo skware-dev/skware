@@ -1,0 +1,101 @@
+---
+
+# Versions as of 2026-06-22
+
+
+# gateway-api-ctl:
+#   repo: 
+#   chart: 
+#   version: 
+# gateway-api-gwclass:
+#   repo: 
+#   chart: 
+#   version: 
+
+
+# # https://github.com/kubernetes/ingress-nginx/releases/latest
+# # https://github.com/kubernetes/ingress-nginx/blob/main/charts/ingress-nginx/values.yaml
+# ingress-nginx:
+#   # name: ingress-nginx
+#   repo: https://kubernetes.github.io/ingress-nginx
+#   chart: ingress-nginx
+#   version: 4.12.0
+# ingress-nginx-cloud:
+#   name: ingress-nginx
+#   repo: https://github.com/kubernetes/ingress-nginx.git
+#   path: deploy/static/provider/cloud
+#   include: deploy.yaml
+#   version: controller-v1.15.1
+# ingress-nginx-baremetal:
+#   name: ingress-nginx
+#   repo: https://github.com/kubernetes/ingress-nginx.git
+#   path: deploy/static/provider/baremetal
+#   include: deploy.yaml
+#   version: controller-v1.15.1
+
+
+
+# https://github.com/external-secrets/external-secrets/releases/latest
+# https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
+external-secrets:
+  name: external-secrets
+  repo: https://charts.external-secrets.io
+  chart: external-secrets
+  version: 2.6.0
+  # valuesObject:
+    # crds:
+      # createClusterExternalSecret: false # default: true
+      # createClusterSecretStore: false # default: true
+      # createPushSecret: false # default: true
+    # serviceMonitor:
+    #   enabled: true # default: false
+    # metrics:
+    #   service:
+    #     enabled: true # default: false
+
+
+
+# https://github.com/openebs/openebs/releases/latest
+# https://github.com/openebs/openebs/blob/main/charts/values.yaml
+openebs:
+  repo: https://openebs.github.io/openebs
+  chart: openebs
+  version: 4.5.1
+
+
+
+# https://github.com/cert-manager/cert-manager/releases/latest
+# https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
+cert-manager:
+  repo: https://charts.jetstack.io
+  chart: cert-manager
+  version: 1.20.3
+  # defaults: defaults/cert-manager.yaml
+
+
+
+# https://github.com/cloudnative-pg/charts/releases
+# https://github.com/cloudnative-pg/charts/blob/main/charts/cloudnative-pg/values.yaml
+cnpg-operator:
+  repo: https://cloudnative-pg.github.io/charts
+  chart: cloudnative-pg
+  version: 0.28.0
+  # namespace: cnpg-system
+  argocd:
+    syncOptions:
+      - CreateNamespace=true
+      - Replace=true
+      - PruneLast=true
+
+
+
+# https://github.com/keycloak/keycloak-k8s-resources.git
+keycloak-operator:
+  name: keycloak-operator
+  repo: https://github.com/keycloak/keycloak-k8s-resources.git
+  path: kubernetes
+  version: 26.6.3
+  include: '{keycloak*.yml,kubernetes.yml}' # CRDs + operator
+
+
+

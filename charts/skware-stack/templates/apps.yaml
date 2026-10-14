@@ -1,0 +1,31 @@
+
+{{- /* Initial wave number */}}
+{{- $waveNum := 1 }}
+
+{{- $appList := $.Values.skware.apps }}
+
+{{- /* For each wave of applications */}}
+{{- range $waveApps := $appList }}
+
+  {{- /* If only one app in wave, casting to list */}}
+  {{- if kindIs "string" $waveApps }}
+  {{- $waveApps = list $waveApps }}
+  {{- end }}
+
+  {{- /* For each application in wave */}}
+  {{- range $appID := $waveApps }}
+    {{- /* Merging defaults with app-specific values */}}
+    {{- include "skware.app" (dict "helm" $ "app" (
+            mergeOverwrite
+              (deepCopy (index $.Values "app-defaults"))
+              (index $.Values $appID)
+              (dict "id" $appID "wave" $waveNum)
+        ))
+    }}
+  {{- end }}
+
+  {{- /* Incrementing wave */}}
+  {{- $waveNum = add1 $waveNum }}
+
+{{- end }}
+

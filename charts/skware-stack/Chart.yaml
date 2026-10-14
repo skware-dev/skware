@@ -1,0 +1,35 @@
+apiVersion: v2
+name: skware-stack
+description: |
+  Speed up Kubernetes software deployments by removing the complexity - When Kube becomes Skware!
+  Skware is designed to be simple, efficient, reliable and extensible.
+maintainers:
+  - name: Skware
+    email: skware.dev@proton.me
+    url: https://github.com/skware-dev
+
+# kubeVersion: # A SemVer range of compatible Kubernetes versions (optional)
+
+type: application
+# icon: <url>
+# home: https://github.com/skware-dev/skware.git
+sources:
+  - https://github.com/skware-dev/skware.git
+keywords:
+  - kubernetes
+  - argocd applications
+  - factory
+  - automation
+  - automated deployment
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.5.1
+
+# Mirrors "version" since there is no real application other than the chart itself
+appVersion: "0.5.1"
+
+# annotations:
+#   kubernetes.io/maintained-by: skware
+

@@ -1,0 +1,105 @@
+---
+
+
+
+#---------- Skware Config ----------#
+
+skware:
+  debug: false
+  # debug: true
+
+  # Prepend the Skware app release name to each App name
+  # Usefull when you intend to deploy multiple instances
+  #   of the same apps with the same name
+  use-release-name: false
+
+  # env: <env-name> # used as suffix for every app manifest/helm deployment (none by default (prod))
+  # profiles:
+  #   - min
+  #   - ha
+  #   - 1db
+
+  # Domain: -> helpers.skware.domain
+  # domain: domain.tld
+
+  # Apps to install as a list of IDs
+  apps: []
+
+
+
+#---------- App defaults ----------#
+
+app-defaults:
+  # name: ArgoCD app name, default: <appID>
+  # namespace: # default: <name>
+
+  # Main source repository:
+  # repo: # REQUIRED
+  # REQUIRED: chart OR path
+  # chart: 
+  # path: 
+  # version: 
+  # include|exclude: 
+  # # Release name override ; default is the ArgoCD app's name
+  # releaseName: # default: <$.Release.Name>-<name>
+
+  # the full ArgoCD sources spec for custom ArgoCD apps
+  # https://argo-cd.readthedocs.io/en/latest/user-guide/multiple_sources/#helm-value-files-from-external-git-repository
+  # sourcesSpec:
+
+  # User values for the chart
+  # values:
+  #   repo: https://git.example.com/org/values.git
+  #   # version: 
+  #   # list of user value files
+  #   files:
+  #     - <values-file-path-relative-to-repo-root>
+  # valuesObject: # values override as yaml object
+
+  # extra:
+  #   secrets: # [opt] External Secrets to create
+  #     # Example:
+  #     <secret-name>:
+  #       # namespace: <secret-namespace> # default: <app.namespace>
+  #       # store: <vault-store-name> # default: <skware.secret-store>
+  #       data: <secret-data-spec>
+  #         - secretKey: <secret-key>
+  #           # Vault secret name and key
+  #           remoteRef:
+  #             key: <vault-secret-name>
+  #             property: <vault-secret-key>
+  #       dataFrom: <secret-dataFrom-spec>
+  #         - extract:
+  #             key: <vault-secret-name>
+  #   objects:
+
+  # [opt] Additional/custom static manifests (ConfigMaps, Custom Resources, kustomizations...)
+  #   Meant to be a quick way to inject custom manifest (plain or using kustomize) to the ArgoCD application,
+  #     NOT to install a second Helm chart with a releaseName and values (which would optionally be hosted on
+  #     yet another repository). You can still use this to deploy a Helm chart using Kustomize though!
+  #       cf. https://kubectl.docs.kubernetes.io/references/kustomize/builtins/#_helmchartinflationgenerator_
+  #     Otherwise, you can use the full "sourcesSpec" for any complex/specific needs.
+  #   Don't forget to specify an ArgoCD sync-wave value in those manifests to control whether to apply them
+  #     before or after those from the main repo/chart (before: sync-wave < 0, after: sync-wave > 0)
+  # custom:
+  #   repo: 
+  #   # version: [opt]
+  #   # path: [opt]
+
+  # ArgoCD application parameters defaults
+  argocd:
+    project: default
+    cluster: https://kubernetes.default.svc
+    # https://kostis-argo-cd.readthedocs.io/en/refresh-docs/syncing/waves/
+    # https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      # - FailOnSharedResource=true
+      # - PruneLast=true
+      # - Replace=true
+    automated:
+      selfHeal: true
+      prune: true
+
+

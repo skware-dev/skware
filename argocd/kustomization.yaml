@@ -1,23 +1,26 @@
 ---
-
 # Patched ArgoCD Application to enable Apps health assessment
 # cf. https://argo-cd.readthedocs.io/en/stable/operator-manual/health/#argocd-app
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 
 resources:
-  - https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml
+  # - argocd-config.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/ha/install.yaml
 
 # https://kubectl.docs.kubernetes.io/references/kustomize/kustomization/patches/
 patches:
   - path: app-health-patch.yaml
-  - patch: |-
+  # Setting Sync delay between waves to 5s
+  - target:
+      group: apps
+      # version: v1
+      kind: Deployment
+      name: argocd-server
+      labelSelector: "app.kubernetes.io/name=argocd-server"
+    patch: |-
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: ARGOCD_SYNC_WAVE_DELAY
           value: "5"
-    target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: argocd-server
-      labelSelector: "app.kubernetes.io/name=argocd-server"
