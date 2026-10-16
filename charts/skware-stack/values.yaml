@@ -31,7 +31,8 @@ skware:
 
 app-defaults:
   # name: ArgoCD app name, default: <appID>
-  # namespace: # default: <name>
+  # Namespace: set to null to omit (cluster-wide resources) ; otherwise, default: <name>
+  # namespace:
 
   # Main source repository:
   # repo: # REQUIRED

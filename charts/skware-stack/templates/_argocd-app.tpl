@@ -19,10 +19,7 @@
 {{- end }}
 
 {{- /* Setting app ns */}}
-{{- $appNS := $app.namespace | default $appName }}
-{{ if and (kindIs "bool" $appNS) (eq $appNS false) }}
-  {{- $appNS = nil }}
-{{- end }}
+{{- $appNS := (and (hasKey $app "namespace") (eq $app.namespace nil)) | ternary nil ($app.namespace | default $appName) }}
 
 {{- if $skware.debug }}
 ---
@@ -31,8 +28,9 @@
 {{- end }}
 ---
 # ArgoCD App:
-#   App ID:  {{ $app.id }}
-#   Name:    {{ $appName }}
+#   App ID:   {{ $app.id }}
+#   Name:     {{ $appName }}
+#   NS:       {{ $appNS }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
