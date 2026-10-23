@@ -39,7 +39,8 @@ metadata:
   labels:
     {{- include "skware.labels" $helm | nindent 4 }}
     {{- if and $app.values $app.values.version }}
-    {{ $app.id }}/values-version: {{ $app.values.version | quote }}
+    {{- /* Handling versions of style "refs/heads/<branch>" */}}
+    {{ $app.id }}/values-version: {{ $app.values.version.split('/') | last | quote }}
     {{- end }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ $app.wave | quote }}
