@@ -40,7 +40,7 @@ metadata:
     {{- include "skware.labels" $helm | nindent 4 }}
     {{- if and $app.values $app.values.version }}
     {{- /* Handling versions of style "refs/heads/<branch>" */}}
-    {{ $app.id }}/values-version: {{ (split '/' $app.values.version) | last | quote }}
+    {{ $app.id }}/values-version: {{ $app.values.version | splitList "/" | last | quote }}
     {{- end }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ $app.wave | quote }}
