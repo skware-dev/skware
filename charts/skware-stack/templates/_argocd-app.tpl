@@ -126,6 +126,9 @@ spec:
       labels:
         app.kubernetes.io/managed-by: argocd
         app.kubernetes.io/instance: {{ $appName }}
+        {{- if $app.argocd.namespace.labels }}
+        {{- toYaml $app.argocd.namespace.labels | nindent 8 }}
+        {{- end }}
     {{- end }}
     {{- with $app.argocd.syncOptions }}
     syncOptions: {{- toYaml . | nindent 6 }}
