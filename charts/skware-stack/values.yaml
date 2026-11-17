@@ -5,6 +5,9 @@
 #---------- Skware Config ----------#
 
 skware:
+  package: skware.app
+  labels: {}
+  annotations: {}
   debug: false
   # debug: true
 
@@ -19,11 +22,17 @@ skware:
   #   - ha
   #   - 1db
 
-  # Domain: -> helpers.skware.domain
-  # domain: domain.tld
-
   # Apps to install as a list of IDs
   apps: []
+
+  # DO NOT OVERRIDE, internal use
+  _argocd_sync:
+    create_ns: CreateNamespace
+    out_of_sync: ApplyOutOfSyncOnly
+    server_side: ServerSideApply
+    fail_shared: FailOnSharedResource
+    prune_last: PruneLast
+    replace: Replace
 
 
 
@@ -33,6 +42,11 @@ app-defaults:
   # name: ArgoCD app name, default: <appID>
   # Namespace: set to null to omit (cluster-wide resources) ; otherwise, default: <name>
   # namespace:
+
+  # Labels/Annotations: mapping of keys/values ; Label keys will be prefixed with "skware.package" => will generate for each label:
+  #   <skware.package>/<key>: <value>
+  labels: {}
+  annotations: {}
 
   # Main source repository:
   # repo: # REQUIRED
@@ -55,24 +69,7 @@ app-defaults:
   #   # list of user value files
   #   files:
   #     - <values-file-path-relative-to-repo-root>
-  # valuesObject: # values override as yaml object
-
-  # extra:
-  #   secrets: # [opt] External Secrets to create
-  #     # Example:
-  #     <secret-name>:
-  #       # namespace: <secret-namespace> # default: <app.namespace>
-  #       # store: <vault-store-name> # default: <skware.secret-store>
-  #       data: <secret-data-spec>
-  #         - secretKey: <secret-key>
-  #           # Vault secret name and key
-  #           remoteRef:
-  #             key: <vault-secret-name>
-  #             property: <vault-secret-key>
-  #       dataFrom: <secret-dataFrom-spec>
-  #         - extract:
-  #             key: <vault-secret-name>
-  #   objects:
+  # valuesObject: # Set values as yaml object directly in the ArgoCD App manifest
 
   # [opt] Additional/custom static manifests (ConfigMaps, Custom Resources, kustomizations...)
   #   Meant to be a quick way to inject custom manifest (plain or using kustomize) to the ArgoCD application,
@@ -88,19 +85,44 @@ app-defaults:
   #   # path: [opt]
 
   # ArgoCD application parameters defaults
+  # https://kostis-argo-cd.readthedocs.io/en/refresh-docs/syncing/waves/
+  # https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/
   argocd:
     project: default
     cluster: https://kubernetes.default.svc
-    # https://kostis-argo-cd.readthedocs.io/en/refresh-docs/syncing/waves/
-    # https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/
-    syncOptions:
-      - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true
-      # - FailOnSharedResource=true
-      # - PruneLast=true
-      # - Replace=true
+    # Managed namespace: labels (Istio ambient, podSecurity, ...) -> only when CreateNamespace=true
+    nsLabels: {}
+    # Managed namespace: annotations () -> only when CreateNamespace=true
+    nsAnnotations: {}
+    # Full syncPolicy override:
+    # syncPolicy:
+    # Custom syncOptions flags (overridable per-option)
+    #   Usage:
+    #     - use the original camel-like variables
+    #         sync:
+    #           CreateNamespace: true
+    #           ApplyOutOfSyncOnly: true
+    #     - use shorthands, mapped to te original in skware._argocd_sync
+    #         sync:
+    #           create_ns: true
+    #           out_of_sync: true
+    #   Default: CreateNamespace=true, ApplyOutOfSyncOnly=true
+    sync:
+      create_ns: true
+      out_of_sync: true
+      # server_side: false
+      # fail_shared: false
+      # replace: false
+      # prune_last: false
+    # Full syncOptions list (takes precedence over "argocd.sync")
+    # syncOptions:
+    #   - CreateNamespace=true
+    #   - ApplyOutOfSyncOnly=true
+    #   - ServerSideApply=true
+    #   - FailOnSharedResource=true
+    #   - PruneLast=true
+    #   - Replace=true
     automated:
       selfHeal: true
       prune: true
-
 

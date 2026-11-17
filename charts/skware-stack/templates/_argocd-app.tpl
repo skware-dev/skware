@@ -21,11 +21,23 @@
 {{- /* Setting app ns */}}
 {{- $appNS := (and (hasKey $app "namespace") (eq $app.namespace nil)) | ternary nil ($app.namespace | default $appName) }}
 
+{{- /* Building app syncOptions from sync flags */}}
+{{- $appSyncOpts := $app.argocd.syncOptions }}
+{{- if not $appSyncOpts }}
+  {{- $appSyncOpts = list }}
+  {{- range $opt, $flag := $app.argocd.sync }}
+  {{- $syncOpt := index $skware._argocd_sync $opt | default $opt }}
+  {{- $appSyncOpts = mustAppend $appSyncOpts (printf "%s=%s" $syncOpt (toString $flag)) }}
+  {{- end }}
+{{- end }}
+
 {{- if $skware.debug }}
 ---
-{{ $app.id }}: ### DEBUG ###
-  {{- toYaml $app | nindent 2 }}
+########## DEBUG ##########
+{{ $app.id }}: {{- toYaml $app | nindent 2 }}
+syncOpts: {{- toYaml $appSyncOpts | nindent 2 }}
 {{- end }}
+
 ---
 # ArgoCD App:
 #   App ID:   {{ $app.id }}
@@ -37,13 +49,23 @@ metadata:
   name: {{ $appName }}
   namespace: argocd
   labels:
-    {{- include "skware.labels" $helm | nindent 4 }}
+    {{- /* Stack & component */}}
+    {{ $skware.package }}/component: {{ $appName }}
+    {{ $skware.package }}/part-of: stack/{{ $helm.Release.Name }}
+    {{- /* Custom Stack+app labels */}}
+    {{- range $key, $val := mergeOverwrite (deepCopy $skware.labels) $app.labels }}
+    {{ $skware.package }}/{{ $key }}: {{ $val }}
+    {{- end }}
     {{- if and $app.values $app.values.version }}
     {{- /* Handling versions of style "refs/heads/<branch>" */}}
-    {{ $app.id }}/values-version: {{ $app.values.version | splitList "/" | last | quote }}
+    {{ $skware.package }}/values: {{ $app.values.version | splitList "/" | last | quote }}
     {{- end }}
+    helm.sh/chart: {{ include "skware.chart" $helm }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ $app.wave | quote }}
+    {{- with mergeOverwrite (deepCopy $skware.annotations) $app.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 # https://argo-cd.readthedocs.io/en/stable/user-guide/application-specification/
@@ -119,24 +141,32 @@ spec:
     {{- if not (eq $appNS nil) }}
     namespace: {{ $appNS }}
     {{- end }}
+  {{- with $app.argocd.syncPolicy }}
+  syncPolicy: {{- . | toYaml |  nindent 4 }}
+  {{- else }}
   syncPolicy:
     {{- /* Setting ArgoCD managed metadata if "CreateNamespace=true" in syncOptions */}}
-    {{- if has "CreateNamespace=true" $app.argocd.syncOptions }}
+    {{- if has "CreateNamespace=true" $appSyncOpts }}
     managedNamespaceMetadata:
       labels:
         app.kubernetes.io/managed-by: argocd
         app.kubernetes.io/instance: {{ $appName }}
-        {{- if $app.argocd.namespace.labels }}
-        {{- toYaml $app.argocd.namespace.labels | nindent 8 }}
+        {{- with $app.argocd.nsLabels }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
+      {{- if $app.argocd.nsAnnotations }}
+      annotations: {{- toYaml $app.argocd.nsAnnotations | nindent 8 }}
+      {{- end }}
     {{- end }}
-    {{- with $app.argocd.syncOptions }}
-    syncOptions: {{- toYaml . | nindent 6 }}
+    {{- if $appSyncOpts }}
+    syncOptions: {{- toYaml $appSyncOpts | nindent 6 }}
     {{- end }}
     {{- if $app.argocd.automated }}
     automated: {{- toYaml $app.argocd.automated | nindent 6 }}
     {{- end }}
+  # retry:
   {{- with $app.argocd.ignoreDifferences }}
   ignoreDifferences: {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- end }}
 {{- end }}
