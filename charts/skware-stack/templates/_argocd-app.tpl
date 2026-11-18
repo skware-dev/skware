@@ -50,11 +50,11 @@ metadata:
   namespace: argocd
   labels:
     {{- /* Stack & component */}}
-    {{ $skware.package }}/component: {{ $appName }}
-    {{ $skware.package }}/part-of: stack/{{ $helm.Release.Name }}
+    {{ $skware.package }}/component: {{ $appName | quote }}
+    {{ $skware.package }}/part-of-stack: {{ $helm.Release.Name | quote }}
     {{- /* Custom Stack+app labels */}}
     {{- range $key, $val := mergeOverwrite (deepCopy $skware.labels) $app.labels }}
-    {{ $skware.package }}/{{ $key }}: {{ $val }}
+    {{ $skware.package }}/{{ $key }}: {{ $val | quote }}
     {{- end }}
     {{- if and $app.values $app.values.version }}
     {{- /* Handling versions of style "refs/heads/<branch>" */}}
